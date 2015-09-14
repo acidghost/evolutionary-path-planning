@@ -9,9 +9,9 @@ object Configuration {
 
     private val conf = ConfigFactory.load()
 
-    def getBoolean(path: String): Boolean = conf.getBoolean(s"param.$path")
-    def getDouble(path: String): Double = conf.getDouble(s"param.$path")
-    def getInt(path: String): Int = conf.getInt(s"param.$path")
+    def getBoolean(path: String): Boolean = conf.getBoolean(s"params.$path")
+    def getDouble(path: String): Double = conf.getDouble(s"params.$path")
+    def getInt(path: String): Int = conf.getInt(s"params.$path")
 
     val mapSize = (conf.getInt("map.m"), conf.getInt("map.n"))
 

@@ -1,5 +1,7 @@
 package nl.vu.ai.acidghost.ec.ga
 
+import nl.vu.ai.acidghost.ec.ga.Genotypes.Genotype
+
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -22,6 +24,7 @@ class Individual {
     def setGene(i: Int, genotype: Genotype) = genes(i) = genotype
 
     def setGenes(from: Int, to: Int, genes: List[Genotype]) = {
+        println(genes)
         for (i <- from to to) {
             this.genes(i) = genes(i)
         }
@@ -40,15 +43,20 @@ object Individual {
     private val genotypes = Genotypes.values.toArray
 
     // Create a random individual
-    def generateIndividual(maxSize: Int = 10): Individual = {
+    def generateIndividual(maxSize: Int = 100, mapSize: (Int, Int) = Configuration.mapSize): Individual = {
         val individual = new Individual
-        val size = Math.round(Math.random() * (maxSize - 1) - 1).toInt
-        for (i <- 1 to size) {
-            val randomGene = Math.round(Math.random() * (genotypes.length - 1)).toInt
-            val gene = genotypes(randomGene)
-            individual.addGene(gene)
+        val size = Math.round(Math.random() * (maxSize - 1) + 1).toInt
+        var position = (1, 1)
+        for (i <- 0 to size - 1) {
+            val genes = FitnessCalc.getValidGenes(position)
+            individual.addGene(randomGene(genes))
         }
         individual
+    }
+
+    def randomGene(genotypes: List[Genotype]): Genotype = {
+        val randomGene = Math.round(Math.random() * (genotypes.length - 1)).toInt
+        genotypes(randomGene)
     }
 
 }

@@ -5,9 +5,9 @@ package nl.vu.ai.acidghost.ec.ga
  */
 object Test extends App {
 
-    for (i <- 1 to 10) {
-        val individual = Individual.generateIndividual()
-        println(individual)
+    val population = new Population(10, true)
+    for (i <- 0 to population.size - 1) {
+        println(population.getIndividual(i))
     }
 
     println(Configuration.mapSize)

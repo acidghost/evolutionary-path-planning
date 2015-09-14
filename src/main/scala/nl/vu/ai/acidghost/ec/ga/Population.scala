@@ -8,8 +8,8 @@ class Population(val populationSize: Int, initialize: Boolean = false) {
     private val individuals: Array[Individual] = new Array(populationSize)
 
     if (initialize) {
-        for (i <- 0 to populationSize) {
-            individuals(i) = Individual.generateIndividual()
+        for (i <- 0 to populationSize - 1) {
+            individuals(i) = Individual.generateIndividual(i)
         }
     }
 
@@ -22,7 +22,7 @@ class Population(val populationSize: Int, initialize: Boolean = false) {
     // Fittest is the individual with lowest fitness value
     def getFittest: Individual = {
         var fittest = individuals.head
-        for (i <- 0 to size) {
+        for (i <- 0 to size - 1) {
             if (fittest.getFitness > individuals(i).getFitness) {
                 fittest = individuals(i)
             }

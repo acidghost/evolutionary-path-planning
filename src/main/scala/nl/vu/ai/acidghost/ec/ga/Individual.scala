@@ -23,16 +23,30 @@ class Individual {
 
     def setGene(i: Int, genotype: Genotype) = genes(i) = genotype
 
-    def setGenes(from: Int, to: Int, genes: List[Genotype]) = {
-        println(genes)
-        for (i <- from to to) {
-            this.genes(i) = genes(i)
+    def setGenes(from: Int, genesToCopy: List[Genotype]) = {
+        if (from == 0 && genes.isEmpty) {
+            genes ++= genesToCopy
+        } else {
+            if (from + genesToCopy.length > genes.length - 1) {
+                val available = genes.length - from
+                for (i <- from to genes.length - 1; j <- 0 to available) {
+                    genes(i) = genesToCopy(j)
+                }
+                val start = genes.length - from
+                for (i <- start to genesToCopy.length - 1) {
+                    genes += genesToCopy(i)
+                }
+            } else {
+                for (i <- from to from + genesToCopy.length - 1; j <- genesToCopy.indices) {
+                    genes(i) = genesToCopy(j)
+                }
+            }
         }
     }
 
     def addGene(genotype: Genotype) = genes += genotype
 
-    def getFitness: Int = FitnessCalc.getFitness(this)
+    def getFitness: Double = FitnessCalc.getFitness(this)
 
     override def toString: String = genes.mkString("Chromosome: ", ", ", ".")
 
@@ -43,13 +57,16 @@ object Individual {
     private val genotypes = Genotypes.values.toArray
 
     // Create a random individual
-    def generateIndividual(maxSize: Int = 100, mapSize: (Int, Int) = Configuration.mapSize): Individual = {
+    def generateIndividual(minSize: Int = Configuration.minInitial, maxSize: Int = Configuration.maxInitial, mapSize: (Int, Int) = Configuration.mapSize): Individual = {
         val individual = new Individual
-        val size = Math.round(Math.random() * (maxSize - 1) + 1).toInt
+        val size = Math.round(Math.random() * (maxSize - minSize - 1) + minSize).toInt
         var position = (1, 1)
         for (i <- 0 to size - 1) {
-            val genes = FitnessCalc.getValidGenes(position)
-            individual.addGene(randomGene(genes))
+            // val gene = randomGene(genotypes)
+            val genes = FitnessCalc.getValidGenotypes(position)
+            val gene = randomGene(genes)
+            individual.addGene(gene)
+            position = FitnessCalc.getNewPosition(position, gene)
         }
         individual
     }

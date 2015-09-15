@@ -7,7 +7,10 @@ object Evolution {
 
     private val elitism = Configuration.getBoolean("elitism")
     private val uniformRate = Configuration.getDouble("uniformRate")
-    private val mutationRate = Configuration.getDouble("mutationRate")
+    private val growthRate = Configuration.getDouble("mutation.growthRate")
+    private val shrinkRate = Configuration.getDouble("mutation.shrinkRate")
+    private val swapRate = Configuration.getDouble("mutation.swapRate")
+    private val replaceRate = Configuration.getDouble("mutation.replaceRate")
     private val tournamentSize = Configuration.getInt("tournamentSize")
 
     // Evolve the population
@@ -23,7 +26,7 @@ object Evolution {
         val elitismOffset = if (elitism) 1 else 0
 
         // Loop over the population size and create new individuals with crossover
-        for (i <- elitismOffset to population.size by 2) {
+        for (i <- elitismOffset to population.size - 1 by 2) {
             val parent1 = tournamentSelection(population)
             val parent2 = tournamentSelection(population)
             val (offspring1, offspring2) = crossover(parent1, parent2)
@@ -32,7 +35,7 @@ object Evolution {
         }
 
         // Mutate population
-        for (i <- elitismOffset to newPopulation.size) {
+        for (i <- elitismOffset to newPopulation.size - 1) {
             mutate(newPopulation.getIndividual(i))
         }
 
@@ -44,9 +47,9 @@ object Evolution {
         // Create a tournament population
         val tournament = new Population(tournamentSize)
         // For each place in the tournament get a random individual
-        for (i <- 0 to tournamentSize) {
-            val random = Math.random() * population.size
-            tournament.setIndividual(i, population.getIndividual(random.toInt))
+        for (i <- 0 to tournamentSize - 1) {
+            val random = Math.round(Math.random() * (population.size - 1)).toInt
+            tournament.setIndividual(i, population.getIndividual(random))
         }
         // Get the fittest
         tournament.getFittest
@@ -58,25 +61,70 @@ object Evolution {
 
         // Implement one-point crossover
         val minParents = Math.min(parent1.size, parent2.size)
-        val point = Math.random() * minParents toInt
-        val parent1Genes = (parent1.getGenes(0, point), parent1.getGenes(point + 1, minParents))
-        val parent2Genes = (parent2.getGenes(0, point), parent2.getGenes(point + 1, minParents))
+        val point = Math.round(Math.random() * (minParents - 1)).toInt
+        val parent1Genes = (parent1.getGenes(0, point + 1), parent1.getGenes(point + 1, parent1.size))
+        val parent2Genes = (parent2.getGenes(0, point + 1), parent2.getGenes(point + 1, parent2.size))
 
-        offspring1.setGenes(0, point, parent1Genes._1)
-        offspring1.setGenes(point + 1, minParents, parent2Genes._2)
-        offspring2.setGenes(0, point, parent2Genes._1)
-        offspring2.setGenes(point + 1, minParents, parent1Genes._2)
+        // println(s"Point in crossover $point where min $minParents ${parent1.size} ${parent2.size}")
+        // println(s"\n${parent1Genes._1.length} ${parent1Genes._2.length} - ${parent2Genes._1.length} ${parent2Genes._2.length}")
+
+        offspring1.setGenes(0, parent1Genes._1)
+        offspring1.setGenes(parent1Genes._1.length, parent2Genes._2)
+        offspring2.setGenes(0, parent2Genes._1)
+        offspring2.setGenes(parent2Genes._1.length, parent1Genes._2)
+
+        // println(s"Offsprings ${offspring1.size} ${offspring2.size}")
 
         (offspring1, offspring2)
     }
 
-    // Mutate an individual. Do the following:
-    //  - growth mutation
-    //  - shrink mutation
-    //  - swap mutation
-    //  - replace mutation
-    //  - parameter mutation
-    //  - heuristic mutations
-    def mutate(individual: Individual) = ???
+    /**
+     * Mutate an individual. Do the following:
+     *  - growth mutation
+     *  - shrink mutation
+     *  - swap mutation
+     *  - replace mutation
+     *  - <s>parameter mutation</s>
+     *  - <s>heuristic mutation</s>
+     *
+     * @param individual The individual to mutate
+     */
+    def mutate(individual: Individual) = {
+        val random = Math.random()
+        if (random <= growthRate) {
+            growthMutation(individual)
+        }
+        if (random <= shrinkRate) {
+            shrinkMutation(individual)
+        }
+//        if (Math.random() <= swapRate) {
+//            swapMutation(individual)
+//        }
+//        if (Math.random() <= replaceRate) {
+//            replaceMutation(individual)
+//        }
+    }
+
+    private def growthMutation(individual: Individual) = {
+        val randomPoint = Math.round(Math.random() * (individual.size - 1)).toInt
+        val gene = FitnessCalc.getValidGenotypesByExec(individual, randomPoint) match {
+            case validGenes => validGenes(Math.round(Math.random() * (validGenes.length - 1)).toInt)
+        }
+        // Shift genes from randomPoint to end one right
+        val genes = individual.getGenes(randomPoint, individual.size)
+        // println(s"Growth $randomPoint ${individual.size} ${gene :: genes length}")
+        individual.setGenes(randomPoint, gene :: genes)
+    }
+
+    private def shrinkMutation(individual: Individual) = {
+        val randomPoint = Math.round(Math.random() * (individual.size - 1)).toInt
+        // Shift genes from randomPoint + 1 till end one left
+        val genes = individual.getGenes(randomPoint + 1, individual.size - 1)
+        individual.setGenes(randomPoint, genes)
+    }
+
+    private def swapMutation(individual: Individual) = ???
+
+    private def replaceMutation(individual: Individual) = ???
 
 }

@@ -9,7 +9,7 @@ class Population(val populationSize: Int, initialize: Boolean = false) {
 
     if (initialize) {
         for (i <- 0 to populationSize - 1) {
-            individuals(i) = Individual.generateIndividual(i)
+            individuals(i) = Individual.generateIndividual()
         }
     }
 

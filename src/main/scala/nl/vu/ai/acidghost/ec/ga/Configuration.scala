@@ -15,4 +15,7 @@ object Configuration {
 
     val mapSize = (conf.getInt("map.m"), conf.getInt("map.n"))
 
+    val minInitial = mapSize._1 / 2
+    val maxInitial = minInitial * 2
+
 }

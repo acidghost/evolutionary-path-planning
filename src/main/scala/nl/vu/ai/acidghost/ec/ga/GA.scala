@@ -9,7 +9,7 @@ object GA extends App {
 
     // Create initial population
     val generations = new ListBuffer[Population]
-    generations += new Population(50, true)
+    generations += new Population(Configuration.getInt("populationSize"), true)
 
     // Let evolution do the work
     for (i <- 1 to Configuration.getInt("maxGenerations")) {
@@ -26,5 +26,10 @@ object GA extends App {
     val lastFittest = generations.last.getFittest
     val exec = FitnessCalc.executeChromosome(lastFittest)
     println(s"Fittest solution:\n$lastFittest\nFitness: ${lastFittest.getFitness} ends in ${exec._5.last}")
+
+    import org.sameersingh.scalaplot.Implicits._
+
+    val x = 1 to generations.length map(_.toDouble)
+    println(output(ASCII, xyChart(x -> generations.map(_.getFittest.getFitness))))
 
 }

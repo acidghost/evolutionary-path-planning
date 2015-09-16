@@ -17,13 +17,13 @@ class Population(val populationSize: Int, initialize: Boolean = false) {
 
     def getIndividual(index: Int) = individuals(index)
 
-    def size = individuals.length
+    def size = populationSize
 
     // Fittest is the individual with lowest fitness value
     def getFittest: Individual = {
         var fittest = individuals.head
         for (i <- 0 to size - 1) {
-            if (fittest.getFitness > individuals(i).getFitness) {
+            if (fittest.getFitness >= individuals(i).getFitness) {
                 fittest = individuals(i)
             }
         }

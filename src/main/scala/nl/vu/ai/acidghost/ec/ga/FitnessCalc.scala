@@ -1,5 +1,6 @@
 package nl.vu.ai.acidghost.ec.ga
 
+import breeze.linalg.DenseVector
 import nl.vu.ai.acidghost.ec.ga.Genotypes.Genotype
 
 import scala.collection.mutable.ListBuffer
@@ -63,24 +64,46 @@ object FitnessCalc {
      *
      * Composed of:
      *  - number of actions that cannot be executed
-     *  - chromosome size minus first conflicting position
+     *  - chromosome size minus first conflicting position (means-driven)
      *  - chromosome size (?) (favors longer chromosomes to avoid being stuck in local optima)
      *  - best sequence size
      *  - count_collisions(FinalAction) (?)
-     *  - phenotype ends in goal position
+     *  - phenotype ends in goal position (goal-driven)
      *
      * @param individual The individual to compute the fitness for
      * @return The fitness score
      */
-    def getFitness(individual: Individual): Double = {
+    def getFitness(individual: Individual, mapSize: (Int, Int) = Configuration.mapSize): Double = {
         val (conflictingActions, firstConflicting, bestSequence, endsInGoal, positions) = executeChromosome(individual)
+        val steps = stepsFromGoal(positions.last)
+        // println(individual.size, conflictingActions, firstConflicting, bestSequence, endsInGoal, positions.last)
 
-        Math.exp(conflictingActions) -
-          0.5 * individual.size +
-          (individual.size - firstConflicting) -
-          2 * bestSequence -
-          (if (endsInGoal) 2 * individual.size else 0) +
-          3 * stepsFromGoal(positions.last)
+//        (Math.pow(conflictingActions, 2) / mapSize._1) -
+//          (Math.pow(individual.size, 2) / mapSize._1) +
+//          ((individual.size - firstConflicting) * 6) -
+//          (bestSequence * mapSize._1) -
+//          (if (endsInGoal) Math.exp(mapSize._1 * 10) else 0) +
+//          (Math.pow(stepsFromGoal(positions.last), 5) / mapSize._1)
+//        val score = Math.pow(conflictingActions + 1, 2) -
+//            Math.pow(individual.size - (firstConflicting + 2), 2) +
+//            7 * Math.pow(steps, 2) +
+//            5 * Math.pow(individual.size, 2) -
+//            (if (endsInGoal) Math.pow(mapSize._1, 4) else 0) -
+//            (if (steps <= mapSize._1 / 4) Math.pow(mapSize._1 * bestSequence, 2) else 0)
+
+        val features = DenseVector(
+            Math.pow(steps, 2.2),
+            Math.pow(conflictingActions + 1, 2),
+            - Math.pow(individual.size - (firstConflicting + 2), 2),
+            Math.pow(individual.size, 2)
+        )
+
+        val weights = DenseVector(0.6, 0.2, 0.05, 0.15).t
+
+        val score = weights * features
+
+        // println(score)
+        score // / mapSize._1
     }
 
     def executeChromosome(individual: Individual, mapSize: (Int, Int) = Configuration.mapSize) = {
